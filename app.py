@@ -1,4 +1,3 @@
-# app.py (copy this)
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -6,13 +5,22 @@ import plotly.express as px
 st.set_page_config(page_title="StoryGenie", layout="wide")
 st.title("📖 StoryGenie — Interactive Story Chatbot (Demo)")
 
+# -------------------------------
+# Initialize session state
+# -------------------------------
 if "history" not in st.session_state:
     st.session_state.history = []
 
+if "user_input" not in st.session_state:
+    st.session_state.user_input = ""
+
+# -------------------------------
+# Input container
+# -------------------------------
 with st.container():
-    user_input = st.text_input("Type your action or message (e.g., 'Attack the dragon')", key="user_input")
+    user_input = st.text_input("Type your action or message", key="user_input")
     if st.button("Send"):
-        text = user_input.strip()
+        text = st.session_state.user_input.strip()
         if text:
             text_l = text.lower()
             if any(k in text_l for k in ["attack", "fight", "hit", "strike"]):
@@ -29,10 +37,13 @@ with st.container():
                 sentiment = "neutral"
 
             st.session_state.history.append({"input": text, "response": response, "sentiment": sentiment})
-            if "user_input" not in st.session_state:
-                 st.session_state.user_input = ""
+            # Clear input
+            st.session_state.user_input = ""
             st.experimental_rerun()
 
+# -------------------------------
+# Conversation display
+# -------------------------------
 st.subheader("📜 Conversation")
 for turn in reversed(st.session_state.history[-10:]):
     st.markdown(f"**You:** {turn['input']}")
@@ -40,6 +51,9 @@ for turn in reversed(st.session_state.history[-10:]):
     st.markdown(f"*Sentiment:* {turn['sentiment']}")
     st.markdown("---")
 
+# -------------------------------
+# Sidebar analytics
+# -------------------------------
 st.sidebar.header("📊 Demo Analytics")
 if st.session_state.history:
     df = pd.DataFrame(st.session_state.history)
@@ -48,6 +62,9 @@ else:
         "input": ["Attack the dragon","Negotiate","Attack the dragon","Offer gift","Run away"],
         "sentiment": ["negative","positive","negative","positive","neutral"]
     })
+
+# Remove duplicate columns if any
+df = df.loc[:, ~df.columns.duplicated()]
 
 choice_counts = df["input"].value_counts().reset_index().rename(columns={"index":"choice", "input":"count"})
 sent_counts = df["sentiment"].value_counts().reset_index().rename(columns={"index":"sentiment", "sentiment":"count"})
