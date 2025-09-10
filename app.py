@@ -29,7 +29,8 @@ with st.container():
                 sentiment = "neutral"
 
             st.session_state.history.append({"input": text, "response": response, "sentiment": sentiment})
-            st.session_state.user_input = ""
+            if "user_input" not in st.session_state:
+                 st.session_state.user_input = ""
             st.experimental_rerun()
 
 st.subheader("📜 Conversation")
